@@ -1,6 +1,6 @@
 export default function Home() {
   return (
-    <div className="text-3xl">
+    <div className="flex-center h-screen">
       StoreIt
     </div>
   );
