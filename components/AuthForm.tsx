@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button"
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -18,6 +17,7 @@ import { useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { createAccount } from "@/lib/actions/user.action"
+import OTPModal from "./OTPModal"
 
 type FormType = 'sign-in' | 'sign-up'
 const authFormSchema = (formType: FormType) => {
@@ -49,9 +49,7 @@ const AuthForm = ({ type }: { type: FormType }) => {
     setErrorMessage('')
     try {
       const user = await createAccount({ fullName: values.fullName || "", email: values.email })
-      console.log("--- ", user)
-      setAccountId(user.userId)
-
+      setAccountId(user.accountId)
     } catch (err) {
       console.log(err)
       setErrorMessage('Failed to create account Please try again.')
@@ -123,6 +121,9 @@ const AuthForm = ({ type }: { type: FormType }) => {
           </div>
         </form>
       </Form>
+      {accountId && (
+        <OTPModal email={form.getValues('email')} accountId={accountId} />
+      )}
     </>
   )
 }

@@ -4,17 +4,19 @@ import { ID, Query } from "node-appwrite";
 import { createAdminClient } from "../appwrite";
 import { appwriteConfig } from "../appwrite/config";
 import { parseStringify } from "../utils";
+import { cookies } from "next/headers";
+import { Session } from "inspector/promises";
 
 const getUserByEmail = async (email: string) => {
-  console.log("resu db ")
+  console.log("resu db ");
   const { databases } = await createAdminClient();
-  console.log("resu db ", databases)
+  console.log("resu db ", databases);
   const results = await databases.listDocuments(
     appwriteConfig.databaseId,
     appwriteConfig.usersCollectionId,
     [Query.equal("email", [email])]
   );
- console.log("resu db ", results)
+  console.log("resu db ", results);
   return results.total > 0 ? results.documents[0] : null;
 };
 
@@ -23,7 +25,7 @@ const handleError = (error: unknown, message: string) => {
   throw error;
 };
 
-const sendEmailOTP = async ({ email }: { email: string }) => {
+export const sendEmailOTP = async ({ email }: { email: string }) => {
   const { account } = await createAdminClient();
   try {
     const session = await account.createEmailToken(ID.unique(), email);
@@ -40,9 +42,9 @@ export const createAccount = async ({
   fullName: string;
   email: string;
 }) => {
-  console.log(":::: merdeeeee ")
+  console.log(":::: merdeeeee ");
   const exestingUser = await getUserByEmail(email);
-  console.log(":::: ", exestingUser)
+  console.log(":::: ", exestingUser);
   const accountId = await sendEmailOTP({ email });
   if (!accountId) throw new Error("Failed to send OTP");
   if (!exestingUser) {
@@ -60,5 +62,22 @@ export const createAccount = async ({
       }
     );
   }
-  return parseStringify({accountId})
+  return parseStringify({ accountId });
+};
+
+export const verifySecret = async (accountId: string, password: string) => {
+  try {
+    const { account } = await createAdminClient();
+    const session = await account.createSession(accountId, password);
+    (await cookies()).set("appwrite-session", session.secret, {
+      path: "/",
+      httpOnly: true,
+      secure: true,
+      sameSite: "strict",
+    });
+
+    return parseStringify({sessionId: session.$id})
+  } catch (err) {
+    handleError(err, "Failed to verify OTP");
+  }
 };
