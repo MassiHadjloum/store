@@ -7,6 +7,7 @@ import { parseStringify } from "../utils";
 import { cookies } from "next/headers";
 import { Session } from "inspector/promises";
 import { avatarPlaceholderUrl } from "@/constants";
+import { redirect } from "next/navigation";
 
 const getUserByEmail = async (email: string) => {
   const { databases } = await createAdminClient();
@@ -88,4 +89,29 @@ export const getCurrentUser = async () => {
 
   if (user.total <= 0) return null;
   return parseStringify(user.documents[0]);
+};
+
+export const signOutUser = async () => {
+  const { account } = await createSessionClient();
+  try {
+    await account.deleteSession("current");
+    (await cookies()).delete("appwrite-session");
+  } catch (err) {
+    handleError(err, "Failed whn log out.");
+  } finally {
+    redirect("/sign-in");
+  }
+};
+
+export const signInUser = async (email: string) => {
+  try {
+    const exestingUser = await getUserByEmail(email);
+    if (exestingUser) {
+      await sendEmailOTP({ email });
+      return parseStringify({ accountId: exestingUser.accountId });
+    }
+    return parseStringify({ accountId: null, error: "User ont found." });
+  } catch (err) {
+    handleError(err, "Failed when sign in");
+  }
 };
