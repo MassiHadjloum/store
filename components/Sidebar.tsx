@@ -11,7 +11,7 @@ interface SidebarProps {
   avatar: string;
 }
 
-const Sidebar = ({fullName, email, avatar}: SidebarProps) => {
+const Sidebar = ({ fullName, email, avatar }: SidebarProps) => {
   const pathname = usePathname()
   return (
     <aside className="sidebar">
@@ -23,8 +23,6 @@ const Sidebar = ({fullName, email, avatar}: SidebarProps) => {
         <Image src="/assets/icons/logo-brand.svg"
           alt="logo" width={52} height={52}
           className="lg:hidden" />
-
-
       </Link>
       <nav className="sidebar-nav">
         <ul className="flex flex-1 flex-col gap-6">
