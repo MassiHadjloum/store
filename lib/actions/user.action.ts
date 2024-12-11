@@ -1,22 +1,20 @@
 "use server";
 
 import { ID, Query } from "node-appwrite";
-import { createAdminClient } from "../appwrite";
+import { createAdminClient, createSessionClient } from "../appwrite";
 import { appwriteConfig } from "../appwrite/config";
 import { parseStringify } from "../utils";
 import { cookies } from "next/headers";
 import { Session } from "inspector/promises";
+import { avatarPlaceholderUrl } from "@/constants";
 
 const getUserByEmail = async (email: string) => {
-  console.log("resu db ");
   const { databases } = await createAdminClient();
-  console.log("resu db ", databases);
   const results = await databases.listDocuments(
     appwriteConfig.databaseId,
     appwriteConfig.usersCollectionId,
     [Query.equal("email", [email])]
   );
-  console.log("resu db ", results);
   return results.total > 0 ? results.documents[0] : null;
 };
 
@@ -42,9 +40,7 @@ export const createAccount = async ({
   fullName: string;
   email: string;
 }) => {
-  console.log(":::: merdeeeee ");
   const exestingUser = await getUserByEmail(email);
-  console.log(":::: ", exestingUser);
   const accountId = await sendEmailOTP({ email });
   if (!accountId) throw new Error("Failed to send OTP");
   if (!exestingUser) {
@@ -56,8 +52,7 @@ export const createAccount = async ({
       {
         fullName,
         email,
-        avatar:
-          "https://png.pngtree.com/png-vector/20190710/ourmid/pngtree-user-vector-avatar-png-image_1541962.jpg",
+        avatar: avatarPlaceholderUrl,
         accountId,
       }
     );
@@ -76,8 +71,21 @@ export const verifySecret = async (accountId: string, password: string) => {
       sameSite: "strict",
     });
 
-    return parseStringify({sessionId: session.$id})
+    return parseStringify({ sessionId: session.$id });
   } catch (err) {
     handleError(err, "Failed to verify OTP");
   }
+};
+
+export const getCurrentUser = async () => {
+  const { databases, account } = await createSessionClient();
+  const result = await account.get();
+  const user = await databases.listDocuments(
+    appwriteConfig.databaseId,
+    appwriteConfig.usersCollectionId,
+    [Query.equal("accountId", result.$id)]
+  );
+
+  if (user.total <= 0) return null;
+  return parseStringify(user.documents[0]);
 };
