@@ -84,8 +84,31 @@ export const getFiles = async () => {
       queries
     );
 
-    return parseStringify(files)
+    return parseStringify(files);
   } catch (err) {
     handleError(err, "Failed to get failes.");
+  }
+};
+
+export const renameFile = async ({
+  extension,
+  fileId,
+  name,
+  path,
+}: RenameFileProps) => {
+  const { databases } = await createAdminClient();
+  try {
+    const newName = `${name}.${extension}`;
+    const updatedFile = await databases.updateDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.filesCollectionId,
+      fileId,
+      { name: newName }
+    );
+
+    revalidatePath(path);
+    return parseStringify(updatedFile);
+  } catch (err) {
+    handleError(err, "Failed to rename the file.");
   }
 };
