@@ -25,9 +25,9 @@ import Link from "next/link"
 import { constructDownloadUrl } from "@/lib/utils"
 import { Input } from "./ui/input"
 import { Button } from "./ui/button"
-import { renameFile } from "@/lib/actions/file.actions"
+import { renameFile, updateFileUsers } from "@/lib/actions/file.actions"
 import { usePathname } from "next/navigation"
-import { FileDetails } from "./ActionsModalContent"
+import { FileDetails, ShareInput } from "./ActionsModalContent"
 
 const ActionDropdown = ({ file }: { file: Models.Document }) => {
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -35,6 +35,7 @@ const ActionDropdown = ({ file }: { file: Models.Document }) => {
   const [action, setAction] = useState<ActionType | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [name, setName] = useState(file.name)
+  const [emails, setEmails] = useState<string[]>([])
   const path = usePathname()
 
   const closeAllModals = () => {
@@ -55,14 +56,31 @@ const ActionDropdown = ({ file }: { file: Models.Document }) => {
         name, path,
         extension: file.extension,
       }),
-      share: () => {},
-      delete: () => {}
+      share: () => updateFileUsers({
+        fileId: file.$id,
+        path,
+        emails
+      }),
+      delete: () => { }
     }
 
     success = await actions[action.value as keyof typeof actions]();
-    if(success) {
+    if (success) {
       closeAllModals();
       setIsLoading(false)
+    }
+  }
+
+  const handleRemoveUser = async (email: string) => {
+    const updatedEmails = emails.filter((e) => e !== email)
+    const success = await updateFileUsers({
+      fileId: file.$id,
+      path,
+      emails
+    })
+    if (success) {
+      setEmails(updatedEmails)
+      closeAllModals()
     }
   }
 
@@ -82,6 +100,8 @@ const ActionDropdown = ({ file }: { file: Models.Document }) => {
             />
           )}
           {value === "details" && <FileDetails file={file} />}
+          {value === "share" && <ShareInput file={file} onInputChange={setEmails}
+            onRemove={handleRemoveUser} />}
         </DialogHeader>
         {["rename", "delete", "share"].includes(value) && (
           <DialogFooter className="flex flex-col gap-3 md:flex-row">
