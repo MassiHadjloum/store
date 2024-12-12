@@ -20,11 +20,11 @@ interface MobileNavigationProps {
   fullName: string;
   email: string;
   avatar: string;
-  ownerId: string;
+  $id: string;
   accountId: string;
 }
 
-const MobileNavigation = ({ avatar, email, fullName, accountId, ownerId }: MobileNavigationProps) => {
+const MobileNavigation = ({ avatar, email, fullName, accountId, $id: ownerId }: MobileNavigationProps) => {
   const [open, setOpen] = useState(false)
   const pathname = usePathname();
 
@@ -77,7 +77,8 @@ const MobileNavigation = ({ avatar, email, fullName, accountId, ownerId }: Mobil
           </nav>
           <Separator className="mb-4 bg-light-200/20" />
           <div className="flex flex-col gap-5 pb-5 justify-between">
-            <FileUploader />
+            <FileUploader ownerId={ownerId} accountId={accountId} />
+            
             <Button type="submit" className="mobile-sign-out-button"
               onClick={async () => await signOutUser()}
             >
