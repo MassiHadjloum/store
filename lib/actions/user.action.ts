@@ -5,7 +5,6 @@ import { createAdminClient, createSessionClient } from "../appwrite";
 import { appwriteConfig } from "../appwrite/config";
 import { parseStringify } from "../utils";
 import { cookies } from "next/headers";
-import { Session } from "inspector/promises";
 import { avatarPlaceholderUrl } from "@/constants";
 import { redirect } from "next/navigation";
 

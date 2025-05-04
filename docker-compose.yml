@@ -1,0 +1,26 @@
+version: "3.8"
+
+services:
+    app:
+      image: massinne/iot-service:2.0
+      container_name: web-app
+      ports:
+        - "3001:3000"
+      networks:
+        - airflow_network
+    rabbitmq:
+      image: rabbitmq:management
+      container_name: amqp
+      ports:
+        - "5672:5672" # Port pour AMQP (connexion depuis Node.js)
+        - "15672:15672" # Port pour l'interface Web (accès depuis le navigateur)
+      environment:
+        - RABBITMQ_DEFAULT_USER=admin
+        - RABBITMQ_DEFAULT_PASS=admin
+      networks:
+        - my_network
+
+  
+networks:
+  my_network:  
+    driver: bridge
